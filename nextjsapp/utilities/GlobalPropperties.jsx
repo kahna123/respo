@@ -6,7 +6,7 @@ const UrlType = {
 
 const GlobalPropperties = {
     // urlParam: 'https://admin.zyapaar.com/',
-    localUrlParam: 'http://localhost:5000/api/',
+    localUrlParam: 'https://smew.onrender.com/api/',
     // testParam: 'https://sms-api.ezeo.app/api/',
     // viewdocument: 'https://sms-api.ezeo.app/',
     viewdocument: 'http://localhost:5000/',
