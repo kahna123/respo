@@ -3,8 +3,8 @@ import GlobalProperties from './GlobalPropperties';
 
 const getToken = () => {
     const user = sessionStorage.getItem('nopToken') || null;
-    const data = user ? JSON.parse(user) : null;
-   return data ? data : null;
+    // const data = user ? JSON.parse(user) : null;
+   return user ? user : null;
 //    return "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJDdXN0b21lcklkIjo2NjcxLCJleHAiOjE3Mzc3ODUwNTEuMH0.Ej3i-ZHv9k8swSuVNuJcz4KF7r_AeGiA-j9KN-zdNmc"
   
 }

@@ -9,37 +9,31 @@ import {
 	User,
 	Lock,
 	Table,
+	PenTool,
   } from 'lucide-react'; // Import icons from lucide-react
   
   const Adminmenu = [
 	{
-	  name: 'Dashboard',
+	  name: 'Order',
 	  href: '/admin',
 	  icon: Home, // Assign an icon to the menu item
 	},
 	{
-	  name: 'Staff',
-	  href: '/admin/staff',
+	  name: 'Delivery',
+	  href: '/admin/Delivery',
 	  icon: DollarSign
-	//   subMenu: [
-	// 	{ name: 'Monthly Sales', href: '/sales/monthly' },
-	// 	{ name: 'Yearly Sales', href: '/sales/yearly' },
-	//   ],
 	},
 	{
-		name: 'Table Management',
-		href: '/admin/tabelmanagment/tabel',
-		icon: Table ,
-		  subMenu: [
-		{ name: 'Tabels', href: '/admin/tabelmanagment/tabel' },
-		{ name: 'Tabel View', href: '/admin/tabelmanagment' },
-	  ],
-	},
-	{
-		name: 'Analytics',
-		href: '/admin/analytics',
+		name: 'Deliverd',
+		href: '/admin/Deliverd',
 		icon: BarChart,
 	  },
+	  {
+		name: 'Tools',
+		href: '/admin/tools',
+		icon: PenTool 
+		
+	},
 	// {
 	//   name: 'Customers',
 	//   href: '/customers',

@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-const Header = () => {
+const Header = ({ toggleSidebar }) => {
   const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
 
@@ -37,21 +37,29 @@ const Header = () => {
     router.push("/");
   };
 
-
-
   return (
-    <header className="bg-gray-800 shadow-lg py-4 px-4">
+    <header className="bg-gray-900 shadow-lg py-4 px-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white ">Dashboard</h1>
         <div className="flex items-center">
-          {/* <input
-            type="text"
-            placeholder="Search..."
-            className="px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
-          />
-          <button className="ml-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-            Search
-          </button> */}
+          <button
+            onClick={toggleSidebar}
+            className="mr-4 h-12 w-12 rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <svg
+              className="w-6 h-6 text-white"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fillRule="evenodd"
+                d="M4 5h16a1 1 0 010 2H4a1 1 0 110-2zM4 11h16a1 1 0 010 2H4a1 1 0 010-2zM4 17h16a1 1 0 010 2H4a1 1 0 110-2z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+          <h1 className="text-xl font-bold text-white ">SMEW</h1>
+        </div>
+        <div className="flex items-center">
           <button
             onClick={handleLogout}
             className="ml-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"

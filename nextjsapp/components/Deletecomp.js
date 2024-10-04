@@ -25,7 +25,8 @@ const Deletecomp = ({ isOpen, onClose, deleteEndpoint }) => {
             const response = await axios.delete(deleteEndpoint, config);
 
             if (response.status === 200) {
-                onClose(); // Close the popup after successful deletion
+                onClose();
+                window.location.reload()
             } else {
                 throw new Error('Failed to delete');
             }

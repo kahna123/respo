@@ -1,33 +1,35 @@
 import Adminmenu from '@/sidebar/adminmenu';
-import Waitermenu from '@/sidebar/waitermenu';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-
-const Sidebar = () => {
+import Image from 'next/image'; // Import Image from Next.js
+import { X } from 'lucide-react'; 
+const Sidebar = ({ isOpen ,toggleSidebar}) => {
   const [menu, setMenu] = useState([]);
   const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
-    // Retrieve roleId from session storage
-    const roleId = sessionStorage.getItem('roleId');
-    if (roleId === '1') {
-      setMenu(Adminmenu);
-    } else if (roleId === '2') {
-      setMenu(Waitermenu);
-    }
-    setIsReady(true); // Ensure session storage is read before rendering
-  }, []);
-
-  if (!isReady) {
-    return null; // Avoid rendering until session storage is read
-  }
-
   return (
-    <aside className="bg-gray-800 dark:bg-gray-900 text-white dark:text-gray-200 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out">
+    <aside
+    className={`bg-gray-800 dark:bg-gray-900 z-50 text-white dark:text-gray-200 w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform ${
+      isOpen ? 'translate-x-0' : '-translate-x-full'
+    } md:relative md:translate-x-0 transition duration-200 ease-in-out`}
+  >
+      {/* Project Logo */}
+      <div className="flex items-center justify-between mb-6 px-4">
+        {/* Close Button */}
+        <div>
+          <h1 className='text-2xl text-blod'>SMEW</h1>
+        </div>
+        <button
+          onClick={toggleSidebar}
+          className="md:hidden focus:outline-none text-white hover:bg-gray-700 p-2 rounded"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
       <nav>
-        {menu.map((item) => (
+        {Adminmenu.map((item) => (
           <SidebarItem key={item.href} item={item} />
         ))}
       </nav>

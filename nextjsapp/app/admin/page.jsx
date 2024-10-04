@@ -1,161 +1,198 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { DollarSign, Users, CreditCard } from 'lucide-react';
+import axios from 'axios';
+import { Edit, Trash2, Eye } from 'lucide-react'; // Import Lucide icons
+import CallFor from '@/utilities/CallFor';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import Deletecomp from '@/components/Deletecomp';
+import GlobalPropperties from '@/utilities/GlobalPropperties';
 
-const salesData = [
-  { name: 'Jan', sales: 4000 },
-  { name: 'Feb', sales: 3000 },
-  { name: 'Mar', sales: 5000 },
-];
+const OrdersTable = () => {
+    const [orders, setOrders] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortConfig, setSortConfig] = useState({ key: '', direction: 'ascending' });
+    const router = useRouter();
 
-const userActivityData = [
-  { name: 'Week 1', active: 500 },
-  { name: 'Week 2', active: 750 },
-  { name: 'Week 3', active: 1000 },
-  { name: 'Week 4', active: 1250 },
-];
+    const token = sessionStorage.getItem('token');
+    
+    // Fetch orders from the API
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const response = await CallFor("orders", "get", null, "Auth");
+                setOrders(response.data.orders);
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            }
+        };
 
-export default function Page() {
-  const [currentTime, setCurrentTime] = useState('');
-  const [userData, setUserData] = useState([]);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+        fetchOrders();
+    }, []);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const res = await fetch("https://jsonplaceholder.typicode.com/users");
-        const data = await res.json();
-        setUserData(data);
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-      }
+    // Handle sorting
+    const handleSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
     };
 
-    fetchUserData();
+    // Sort orders based on the sortConfig
+    const sortedOrders = React.useMemo(() => {
+        let sortableOrders = [...orders];
+        if (sortConfig.key) {
+            sortableOrders.sort((a, b) => {
+                if (a[sortConfig.key] < b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (a[sortConfig.key] > b[sortConfig.key]) {
+                    return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableOrders;
+    }, [orders, sortConfig]);
 
-    // Set the initial time and start the interval
-    setCurrentTime(new Date().toLocaleString());
-    const timer = setInterval(() => setCurrentTime(new Date().toLocaleString()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+    // Handle search
+    const filteredOrders = sortedOrders.filter(order => 
+        order.invoiceNo.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        order.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  const sortData = (key) => {
-    let direction = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
+    // Handle actions (edit, delete, view)
+    const handleEdit = (orderId) => {
+        router.push(`/admin/order/editorder/${orderId}`);
+    };
 
-    const sortedData = [...userData].sort((a, b) => {
-      if (a[key] < b[key]) return direction === 'ascending' ? -1 : 1;
-      if (a[key] > b[key]) return direction === 'ascending' ? 1 : -1;
-      return 0;
-    });
-    setUserData(sortedData);
-  };
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [deleteEndpoint, setDeleteEndpoint] = useState('');
 
-  return (
-    <div className="flex h-screen bg-gray-100">
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="flex items-center justify-between pb-2">
-                <h3 className="text-sm font-medium">Total Revenue</h3>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="text-2xl font-bold">$45,231.89</div>
-            </div>
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="flex items-center justify-between pb-2">
-                <h3 className="text-sm font-medium">New Customers</h3>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="text-2xl font-bold">+2350</div>
-            </div>
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="flex items-center justify-between pb-2">
-                <h3 className="text-sm font-medium">Sales</h3>
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="text-2xl font-bold">+12,234</div>
-            </div>
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="flex items-center justify-between pb-2">
-                <h3 className="text-sm font-medium">Active Now</h3>
-              </div>
-              <div className="text-2xl font-bold">+573</div>
-            </div>
-          </div>
+    const handleDeleteClick = (userId) => {
+        setDeleteEndpoint(`${GlobalPropperties.localUrlParam}orders/${userId}`); // Adjust based on your API
+        setIsDeleteOpen(true);
+    };
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 gap-4 mt-4 lg:grid-cols-2">
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <h3 className="text-lg font-medium">Monthly Sales</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="sales" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <h3 className="text-lg font-medium">User Activity</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={userActivityData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="active" stroke="#82ca9d" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+    const closeDeleteModal = () => {
+        setIsDeleteOpen(false);
+        setDeleteEndpoint(''); // Reset the endpoint
+    };
 
-          {/* User Data Table */}
-          <div className="bg-white shadow-md rounded-lg mt-4 p-4">
-            <h3 className="text-lg font-medium">User Data</h3>
-            <table className="min-w-full bg-white">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="py-2 px-4 border-b text-left cursor-pointer" onClick={() => sortData('id')}>ID</th>
-                  <th className="py-2 px-4 border-b text-left cursor-pointer" onClick={() => sortData('name')}>Name</th>
-                  <th className="py-2 px-4 border-b text-left cursor-pointer" onClick={() => sortData('username')}>Username</th>
-                  <th className="py-2 px-4 border-b text-left cursor-pointer" onClick={() => sortData('email')}>Email</th>
-                  <th className="py-2 px-4 border-b text-left cursor-pointer" onClick={() => sortData('phone')}>Phone</th>
-                </tr>
-              </thead>
-              <tbody>
-                {userData.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="py-2 px-4 border-b">{user.id}</td>
-                    <td className="py-2 px-4 border-b">{user.name}</td>
-                    <td className="py-2 px-4 border-b">{user.username}</td>
-                    <td className="py-2 px-4 border-b">{user.email}</td>
-                    <td className="py-2 px-4 border-b">{user.phone}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+    const handleView = (orderId) => {
+        router.push(`/admin/order/vieworder/${orderId}`);
+    };
+
+    // Download Excel function
+    const handleDownloadExcel = async () => {
+        axios.get('http://localhost:5000/api/orders/downloadexcel', {
+            responseType: 'blob', // Important for downloading files
+            headers: {
+                'Authorization': `Bearer ${token}` // Include the token in the request header
+            }
+        })
+        .then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'orders.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            link.remove(); // Optional: remove the link after clicking
+        })
+        .catch((error) => {
+            console.error('Error downloading file:', error);
+        });
+    };
+
+    return (
+        <div>
+            <div className="flex justify-between mb-4">
+                <div>
+                    <input 
+                        type="text" 
+                        placeholder="Search by Invoice No or Description" 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                        className="border border-gray-300 rounded px-2 py-1"
+                    />
+                    <button 
+                        onClick={() => setSearchTerm('')} 
+                        className="bg-blue-500 my-2 text-white rounded ms-2 px-4 py-1"
+                    >
+                        Search
+                    </button>
+                </div>
+                <div>
+                    <button 
+                        onClick={handleDownloadExcel} // Add download function on click
+                        className="bg-red-500 text-white rounded ms-2 my-2 px-4 py-1"
+                    >
+                        Export
+                    </button>
+                    <Link href={"/admin/order/addorder"}>
+                        <button 
+                            className="bg-green-500 text-white rounded ms-2 px-4 py-1"
+                        >
+                            Add
+                        </button>
+                    </Link>
+                </div>
+            </div>
+
+            <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" className="px-6 py-3">#</th>
+                            <th scope="col" className="px-6 py-3" onClick={() => handleSort('description')}>Description</th>
+                            <th scope="col" className="px-6 py-3" onClick={() => handleSort('invoiceNo')}>Invoice No</th>
+                            <th scope="col" className="px-6 py-3">Order Date</th>
+                            <th scope="col" className="px-6 py-3">Total Qty</th>
+                            <th scope="col" className="px-6 py-3">Price Per Unit</th>
+                            <th scope="col" className="px-6 py-3">Total Delivered Qty</th>
+                            <th scope="col" className="px-6 py-3">Total Price</th>
+                            <th scope="col" className="px-6 py-3">Status</th>
+                            <th scope="col" className="px-6 py-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredOrders.map((order, index) => (
+                            <tr key={order._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <td className="px-6 py-4">{index + 1}</td>
+                                <td className="px-6 py-4">{order.description}</td>
+                                <td className="px-6 py-4">{order.invoiceNo}</td>
+                                <td className="px-6 py-4">{new Date(order.orderDate).toLocaleDateString()}</td>
+                                <td className="px-6 py-4">{order.totalQty}</td>
+                                <td className="px-6 py-4">{order.pricePerUnit}</td>
+                                <td className="px-6 py-4">{order.totalDeliveredQty}</td>
+                                <td className="px-6 py-4">{order.totalPrice}</td>
+                                <td className="px-6 py-4">{order.status ? 'Delivered' : 'Pending'}</td>
+                                <td className="px-6 py-4 flex space-x-2">
+                                    <button onClick={() => handleEdit(order._id)} className="text-blue-500 hover:text-blue-700">
+                                        <Edit className="w-5 h-5" />
+                                    </button>
+                                    <button onClick={() => handleDeleteClick(order._id)} className="text-red-500 hover:text-red-700">
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                    <button onClick={() => handleView(order._id)} className="text-green-500 hover:text-green-700">
+                                        <Eye className="w-5 h-5" />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            <Deletecomp
+                isOpen={isDeleteOpen} 
+                onClose={closeDeleteModal} 
+                deleteEndpoint={deleteEndpoint} 
+            />
         </div>
+    );
+};
 
-        {/* Footer */}
-        <footer className="bg-white shadow-md mt-8">
-          <div className="max-w-7xl mx-auto py-4 px-4 flex justify-between items-center">
-            <p className="text-gray-500 text-sm">© 2024 Your Company. All rights reserved.</p>
-            <p className="text-gray-500 text-sm">{currentTime}</p>
-          </div>
-        </footer>
-      </main>
-    </div>
-  );
-}
+export default OrdersTable;
